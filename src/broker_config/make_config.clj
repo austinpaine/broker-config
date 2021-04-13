@@ -52,22 +52,9 @@
             events (:events channel)
             topics (mapv #(:channel (io-slurp-string (str "../rocky-road/events/events/" % ".edn"))) events)]
 
-
-        ;(prn "loaded the channel, events are: " events)
-        ;(for [event events]
-        ;  (doall
-        ;    (prn "topics: " @topics)
-        ;  (swap! topics conj (:channel (io-slurp-string (str "../rocky-road/events/events/" event ".edn"))))
-        ;    ))
-        ;
-        ;(prn "reseting the topics from?: " @topics)
-        ;(reset! topics (into [] (filter some? @topics)))
-
-
-        (case arg
+        (case arg   ;;Fix the paths below to be the actual config files once we iron out the events files
           "amqp" (make-amqp-config "../rocky-road/docker/amqp/TESTamqp-service-config.sh" exchange topics)
           "rabbitmq" (rc/make-rabbit-config "../rocky-road/docker/rabbitmq/TESTdefinitions.json" exchange topics))))
-
 
 
     (throw (Exception. "Must have at least one arg!"))))
