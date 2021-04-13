@@ -1,6 +1,6 @@
 (ns broker-config.rabbit-config
   (:require [clojure.data.json :as json]
-            [clojure.java.io :as jio])
+            [clojure.java.io :as io])
   (:gen-class))
 
 
@@ -64,9 +64,16 @@
         (doall (mapv make-binding topics))})
 
 
+;; Using the io writer was much prefered to spitting the text.
+;; Attempting to convert to json string and convert back was a nightmare
+;; so using the json/write to convert and write edn-json in one step was perfect.
+;; https://github.com/clojure/data.json
+;; https://clojure.github.io/data.json/
 
 (defn make-rabbit-config [filename exchange topics]
-  (with-open [wrtr (jio/writer filename)]
+  (if (.exists (io/as-file filename))
+    (io/delete-file filename))
+  (with-open [wrtr (io/writer filename)]
     (json/write (main-json exchange topics) wrtr :escape-slash false)))
 
 
@@ -92,7 +99,7 @@
                                   :read ".*"}]})
 
 
-  (with-open [wrtr (jio/writer "projects/make-config/resources/testRabbit.txt")]
+  (with-open [wrtr (io/writer "projects/make-config/resources/testRabbit.txt")]
     (json/write json wrtr :escape-slash false))
 
 

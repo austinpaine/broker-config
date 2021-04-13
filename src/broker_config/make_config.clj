@@ -3,25 +3,30 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [clojure.edn :as edn]
-            [rabbit-config :as rc])
+            [broker-config.rabbit-config :as rc])
   (:gen-class))
 
 (defn io-slurp-string
   "Takes in a filename (or path) as a string and
   slurps its contents into edn"
   [file]
-  (->> file
-       io/resource
-       slurp
-       edn/read-string))
+  (if (.exists (io/as-file file))
+    (->> file
+         io/resource
+         slurp
+         edn/read-string)
+    (prn "Failed to find resource: " file)))
 
 (defn append-to-file-amqp
-  [file-name s]
-  (spit file-name (str "qpid-config add queue " s "\n") :append true))
+  [filename s]
+  (if (some? s)
+    (spit filename (str "qpid-config add queue " s "\n") :append true)))
 
 
 
 (defn make-amqp-config [filename exchange topics]
+  (if (.exists (io/as-file filename))
+    (io/delete-file filename))
   (do (spit filename (str
                        "#!/bin/bash \n"
                        "nohup /usr/sbin/qpidd & \n"
@@ -40,19 +45,28 @@
 (defn -main [& args]
   (if (seq args)
     (doseq [arg args]
-      (prn arg)
+      ;(prn arg)
 
-      (let [channel (io-slurp-string (str "channels/" arg ".edn"))
+      (let [channel (io-slurp-string (str "../rocky-road/channels/" arg ".edn"))
             exchange (:exchange-name channel)
             events (:events channel)
-            topics []]
+            topics (mapv #(:channel (io-slurp-string (str "../rocky-road/events/events/" % ".edn"))) events)]
 
-        (doseq [event events]
-          (conj topics (:event-channel channel (io-slurp-string (str "events/events/" event ".edn")))))
+
+        ;(prn "loaded the channel, events are: " events)
+        ;(for [event events]
+        ;  (doall
+        ;    (prn "topics: " @topics)
+        ;  (swap! topics conj (:channel (io-slurp-string (str "../rocky-road/events/events/" event ".edn"))))
+        ;    ))
+        ;
+        ;(prn "reseting the topics from?: " @topics)
+        ;(reset! topics (into [] (filter some? @topics)))
+
 
         (case arg
-          "amqp" (make-amqp-config "docker/amqp/TESTamqp-service-config.sh" exchange topics)
-          "rabbitmq" (rc/make-rabbit-config "docker/rabbitmq/TESTdefinitions.json" exchange topics))))
+          "amqp" (make-amqp-config "../rocky-road/docker/amqp/TESTamqp-service-config.sh" exchange topics)
+          "rabbitmq" (rc/make-rabbit-config "../rocky-road/docker/rabbitmq/TESTdefinitions.json" exchange topics))))
 
 
 
@@ -65,15 +79,19 @@
   (def exchange "the-exchange")
 
   (def arg "amqp")
-  (def channel (io-slurp-string (str "channels/" arg ".edn")))
+  (def channel (io-slurp-string (str "../rocky-road/channels/" arg ".edn")))
   (def exchange (:exchange-name channel))
   (def events (:events channel))
   (def event "wireless-request")
-  (def topics [])
+  (def topics (atom []))
   (doseq [event events]
     (conj topics (:event-channel channel (io-slurp-string (str "events/events/" event ".edn")))))
 
 
   (make-amqp-config "amqp-test-config.out" "my-exchange" ["wireless-request" "request-error" "test-error"])
 
+
+  (.list (io/file "../"))
+  (System/getProperty "user.dir")
+  (io-slurp-string "../rocky-road/channels/amqp.edn")
   ())
