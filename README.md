@@ -1,50 +1,21 @@
-# make-config
+# Broker Config
 
-FIXME: my new application.
-
-## Installation
-
-Download from https://github.com/broker_config/make-config
+A tool to generate amqp and rabbit broker configs
+based on external edn files
 
 ## Usage
 
-FIXME: explanation
 
 Run the project directly:
 
-    $ clojure -M -m broker_config.make-config
+    $ clj -M:run **BROKER**
 
-Run the project's tests (they'll fail until you edit them):
+Currently the two supported broker options are: `amqp` `rabbitmq`
 
-    $ clojure -M:test:runner
-
-Build an uberjar:
-
-    $ clojure -M:uberjar
-
-Run that uberjar:
-
-    $ java -jar make-config.jar
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
 
 ## License
 
-Copyright © 2021 Blackhammer06
+Copyright © 2021 Blackhammer
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
