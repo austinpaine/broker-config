@@ -47,7 +47,7 @@
     (doseq [arg args]
       ;(prn arg)
 
-      (let [channel (io-slurp-string (str "../rocky-road/channels/" arg ".edn"))
+      (let [channel (io-slurp-string (str "/channels/" arg ".edn"))
             exchange (:exchange-name channel)
             events (:events channel)
             topics (mapv #(:channel (io-slurp-string (str "../rocky-road/events/events/" % ".edn"))) events)]
